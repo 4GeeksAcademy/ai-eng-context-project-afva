@@ -7,7 +7,7 @@ By [@marcogonzalo](https://github.com/marcogonzalo) and [other contributors](htt
 [![build by developers](https://img.shields.io/badge/build_by-Developers-blue)](https://4geeks.com)
 [![4Geeks Academy](https://img.shields.io/twitter/follow/4geeksacademy?style=social&logo=x)](https://x.com/4geeksacademy)
 
-_Estas instrucciones están [disponibles en español](./README.es.md)._
+_Estas instrucciones están [disponibles en español](./readme.4geeks.md). Para la guía específica de esta versión, consulta [readme.afva.md](./readme.afva.md)._
 
 **Before you start**: 📗 [Read the instructions](https://4geeks.com/lesson/how-to-start-a-project) on how to start a coding project.
 
@@ -48,6 +48,18 @@ If you need to target a different backend origin, copy `frontend/.env.example` t
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8000
 - API documentation: http://localhost:8000/docs
+
+For the project-specific architecture, endpoints, tests, and contribution guidance, see [readme.afva.md](./readme.afva.md).
+
+## Sample Data Source
+
+The canonical sample movements come from `generate_mock_movements(seed=42)` in `backend/app/routes.py`; the dashboard consumes them through `GET /api/metrics`. There is no database and changes are not persisted. Avoid maintaining a second collection of sample movements in the frontend; tests may define small local fixtures.
+
+Docker images install from the committed lockfiles: `npm ci` for the frontend and `pip install --require-hashes -r requirements.txt` for the backend.
+
+The backend allows no CORS origins by default; in the normal workflow, Vite proxies `/api` to the backend from the same origin. If a browser must call the API directly from another origin, set `CORS_ALLOW_ORIGINS` to a comma-separated list of explicit origins.
+
+Remote debugging is disabled by default. To enable it locally, use `docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build`; port `5678` is bound only to `127.0.0.1`.
 
 ---
 
