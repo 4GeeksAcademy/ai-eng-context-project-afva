@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeKPIs,
   computeMonthlyData,
+  formatMovementPeriod,
   formatCurrency,
   formatPercent,
 } from "./financial-utils";
@@ -100,6 +101,18 @@ describe("computeMonthlyData", () => {
       outcome: 0,
       profitPercent: 100,
     });
+  });
+});
+
+describe("formatMovementPeriod", () => {
+  it("uses the first and last movement months regardless of input order", () => {
+    expect(formatMovementPeriod([...sampleMovements].reverse())).toBe(
+      "Jan 2024 - Feb 2024",
+    );
+  });
+
+  it("handles an empty movement list", () => {
+    expect(formatMovementPeriod([])).toBe("No data");
   });
 });
 
