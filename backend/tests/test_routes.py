@@ -1,9 +1,15 @@
+import random
 from datetime import date
 
 from fastapi.testclient import TestClient
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.main import app
-from app.routes import filter_movements_by_date, generate_mock_movements
+from app.routes import (
+    build_metrics_facets,
+    filter_movements_by_date,
+    generate_mock_movements,
+)
 
 
 client = TestClient(app)
@@ -14,6 +20,28 @@ def test_generate_mock_movements_returns_full_year_sorted_data():
 
     assert len(movements) == 360
     assert movements == sorted(movements, key=lambda item: item.create_date)
+
+
+def test_generate_mock_movements_is_repeatable_without_changing_global_rng():
+    random.seed(7)
+    expected_next_value = random.random()
+    random.seed(7)
+
+    first = generate_mock_movements(seed=42)
+    second = generate_mock_movements(seed=42)
+
+    assert first == second
+    assert random.random() == expected_next_value
+
+
+def test_build_metrics_facets_handles_empty_movements():
+    facets = build_metrics_facets([])
+
+    assert facets.operation_types == []
+    assert facets.business_types == []
+    assert facets.categories == []
+    assert facets.min_date is None
+    assert facets.max_date is None
 
 
 def test_filter_movements_by_date_includes_range_edges():
@@ -31,6 +59,17 @@ def test_health_endpoint_returns_ok():
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_cors_does_not_allow_wildcard_or_credentials():
+    cors_options = next(
+        middleware.kwargs
+        for middleware in app.user_middleware
+        if middleware.cls is CORSMiddleware
+    )
+
+    assert "*" not in cors_options["allow_origins"]
+    assert cors_options["allow_credentials"] is False
 
 
 def test_metrics_endpoint_respects_date_filters():
