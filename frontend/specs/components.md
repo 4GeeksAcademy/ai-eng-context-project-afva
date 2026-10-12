@@ -28,6 +28,7 @@ interface DateRangeFilterProps {
 
 - Read the reference bounds from `facets.min_date` and `facets.max_date`; either may be `null` for an empty dataset.
 - Empty inputs mean no corresponding query parameter is sent. With both empty, request the complete available dataset.
+- If only `start_date` is set, include movements from that date onward; if only `end_date` is set, include movements through that date. The supplied boundary is inclusive in either case.
 - Do not send dates outside the available bounds. Do not apply an invalid range where `start_date` is later than `end_date`.
 - The page owner passes the same date range to the existing metrics request and the alerts request so all main-dashboard metrics, charts, and alerts stay in sync.
 
