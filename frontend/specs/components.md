@@ -58,7 +58,7 @@ interface AnomalyAlertsTableProps {
 
 ### Navigation and Ownership
 
-Treat the comparison as a second dashboard view. The current frontend has no router dependency, so implement the view switch as local page state in `App` with a keyboard-accessible tab or segmented navigation control; do not add URL-routing behavior as part of this spec. Keep the comparison's date range independent of the main dashboard's range, as the brief describes a separate filter for this view.
+Treat the comparison as a second dashboard view. The current frontend has no router dependency, so implement the view switch as local page state in `App` with a keyboard-accessible tab or segmented navigation control; do not add URL-routing behavior as part of this spec. Both views must use the same `DateRangeFilter` state owned by `App`; do not keep a separate comparison range. Render the filter in each view, and changing it in either tab must update the range used by both analyses.
 
 ### `BusinessComparisonView`
 
@@ -71,7 +71,9 @@ import type { DateRangeFilter } from "./param-types"
 
 interface BusinessComparisonViewProps {
   facets: FacetsResponse
+  /** Shared range also used by the main dashboard and its alerts. */
   dateRange: DateRangeFilter
+  /** Updates the shared range regardless of which dashboard view is active. */
   onDateRangeChange: (value: DateRangeFilter) => void
   b2bCategories: TopCategoriesResponse
   b2cCategories: TopCategoriesResponse
@@ -108,17 +110,18 @@ interface IncomeComparisonChartProps {
 }
 ```
 
-- Query `GET /api/metrics/categories/top` separately for `business_type=B2B` and `business_type=B2C`, using `operation_type=income`, `limit=5`, and the comparison date range.
+- Query `GET /api/metrics/categories/top` separately for `business_type=B2B` and `business_type=B2C`, using `operation_type=income`, `limit=5`, and the shared date range. Use the same `start_date` and `end_date` values for the main metrics, alerts, category requests, and B2B/B2C movement requests.
 - `facets.categories` is a global category list, not a per-business list. Use the returned `TopCategoriesResponse` entries to decide which rows each table actually displays; do not infer that every global category exists for both segments.
 - The mock dataset currently has only `sales` and `others` as income categories. Show the categories returned by the API (up to five); do not pad the tables with fabricated entries.
 - Obtain each group income total from its date-filtered `GET /api/metrics/b2b` or `/api/metrics/b2c` `FinancialMovement[]` response by summing `amount` where `operation_type === "income"`. These existing responses use the Phase 2 movement shape; no new API response fields are introduced by this spec.
 - For each category, calculate percentage as `total_amount / groupIncomeTotal * 100`. If `groupIncomeTotal` is zero, display `—` rather than divide by zero. The API's `total_amount` is the row amount; it is not itself the percentage or group total.
-- The chart compares `b2bIncomeTotal` and `b2cIncomeTotal` for the same selected date range. Use one chart below both tables, not one chart per segment.
+- The chart compares `b2bIncomeTotal` and `b2cIncomeTotal` for the same shared selected date range as the main dashboard. Use one chart below both tables, not one chart per segment.
 - Show an explicit empty state for a segment whose category response is empty, and a loading state while its data is being fetched.
 
 ## Contract Decisions
 
 - Date query fields remain optional and retain the API names `start_date` and `end_date` from `DateRangeFilter`.
+- Both dashboard views bind to one shared `DateRangeFilter` state. A change in either view updates all requests and displayed analyses; there is no independent comparison range.
 - `AlertsParams` and `TopCategoriesParams` include all supported query parameters from Phase 2, including `group_by` and `business_type` for alerts, and `business_type` for top categories.
 - Table data uses `AlertEntry[]` / `AlertsResponse` and `CategoryEntry[]` / `TopCategoriesResponse` as defined by the API contracts. Percentages and group totals are frontend-derived display values, not fields claimed to be present in those API responses.
 - No backend changes, new response properties, or extra router dependency are implied by this component spec.
