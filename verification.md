@@ -60,3 +60,35 @@ En la última comprobación, `develop1` estaba limpia y sincronizada con `origin
 
 - La URL remota observada es `https://github.com/4GeeksAcademy/ai-eng-context-project-afva`. El remoto local confirma dónde se publica la rama, pero no demuestra por sí solo que el repositorio sea un fork; para certificarlo, hay que comprobar en GitHub la relación “Forked from”.
 - La revisión y corrección asistida se hizo durante la sesión. Este archivo aporta el rastro técnico disponible en el repo; la aprobación humana final sigue siendo responsabilidad del contribuidor.
+
+## Sesión de trabajo — 2026-10-12: Specs y mejoras del dashboard
+
+En esta sesión se revisaron en Swagger (`/docs`) los contratos del backend frente a las tres funcionalidades solicitadas. El trabajo fue de análisis; no se implementaron cambios en la API ni en el dashboard.
+
+### Contraste de requisitos con el API y aclaraciones de la spec
+
+El frontend usa un patrón local de `fetch` en `App.tsx`: construye la URL con `VITE_API_BASE_URL`, comprueba `response.ok` y representa estados de carga y error. No hay un cliente HTTP compartido. Actualmente solo se consume `GET /api/metrics`.
+
+| Funcionalidad | Requisito de PM | API y datos actuales | Wording acordado para la spec |
+|---|---|---|---|
+| Rango de fechas | Dos fechas opcionales `YYYY-MM-DD`; mostrar el intervalo disponible y filtrar todos los datos actuales. | `GET /api/metrics` acepta `start_date` y `end_date`; compara ambos extremos de forma inclusiva. `GET /api/metrics/facets` devuelve `min_date` y `max_date`. | Enviar solo los parámetros no vacíos; obtener el intervalo de referencia de `facets`. Calcular KPI y gráficos a partir de los movimientos filtrados que devuelve `/api/metrics`. |
+| Alertas | Mostrar outcome, media móvil de los tres períodos previos e incremento porcentual. Umbral entre `0.01` y `1.0`, por defecto `0.3`. | `GET /api/metrics/alerts` acepta fechas y `threshold` desde `0`, sin máximo. Responde `period`, `outcome_total`, `baseline_average` e `increase_ratio`. La media de referencia usa todos los períodos anteriores del rango, no solo los tres anteriores. | Para alinearse con el comportamiento disponible, la columna se denomina “media de los períodos anteriores del rango”. El control de UI limita el ratio a `0.01–1.0`; el incremento mostrado es `increase_ratio × 100`. Mantener el mensaje de estado vacío solicitado. |
+| Comparativa B2B/B2C | Mostrar las cinco categorías de ingreso principales por grupo, importe y porcentaje; comparar ingresos totales y permitir filtrar por fechas. | `/api/metrics/categories/top` acepta `operation_type`, `limit`, fechas y `business_type`; devuelve `category`, `operation_type` y `total_amount`, sin porcentaje ni total del grupo. `/api/metrics/facets` devuelve categorías globales. La muestra genera ingresos solo en `sales` y `others`. | Especificar “hasta cinco categorías de ingreso disponibles”, sin completar categorías inexistentes. Usar `total_amount` para el importe y calcular su porcentaje sobre la suma de `income` de `/api/metrics/summary` filtrada por `business_type` y fechas. Comparar esas sumas en el gráfico. |
+
+Las aclaraciones anteriores resuelven las discrepancias de wording respecto al contrato y al dataset actuales; no describen cambios implementados. Los endpoints analíticos existen, pero aún deben conectarse al dashboard y cubrirse con pruebas.
+
+## Seguimiento de implementación — 2026-10-12: Dashboard (fase 2)
+
+Esta sesión implementó en el frontend las funcionalidades descritas en la sesión de análisis anterior, respetando el contrato actual del backend. No se modificó el backend.
+
+- Se añadieron los tipos de respuesta y query params de fase 2 en `frontend/specs/api-types.ts` y `frontend/specs/param-types.ts`; `App` los usa para las consultas de alertas y categorías.
+- El dashboard principal obtiene facets y muestra el intervalo disponible. Las fechas opcionales se envían como `start_date` y `end_date`; los KPI y gráficos se calculan con los movimientos filtrados y el mismo rango se aplica a las alertas.
+- Se añadió la tabla de anomalías con outcome, baseline, ratio mostrado como porcentaje y estado vacío. El control limita el ratio a `0.01–1.0`; el baseline mantiene la semántica existente de media de todos los períodos previos en el rango.
+- Se añadió navegación local a la vista B2B/B2C, con rango independiente, tablas de categorías por segmento y un gráfico único. Los porcentajes se calculan sobre ingresos derivados de los movimientos B2B/B2C; se muestran solo las categorías devueltas por el API, hasta cinco.
+- Se añadieron pruebas para omitir filtros vacíos y sumar solo movimientos de ingreso (`frontend/src/lib/api-utils.test.ts`).
+
+### Verificaciones de la fase 2
+
+- Frontend: `npm test` — 10 pruebas pasaron; `npm run lint` pasó; `npm run build` pasó.
+- API en ejecución: la página del frontend, `/api/metrics/facets`, `/api/metrics/alerts` y `/api/metrics/categories/top` para B2B respondieron HTTP 200.
+- Vite mantiene el aviso de bundle superior a 500 kB; no impidió el build.
