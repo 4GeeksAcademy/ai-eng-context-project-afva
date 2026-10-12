@@ -20,13 +20,14 @@ import type { DateRangeFilter as DateRangeFilterValue } from "./param-types"
 
 interface DateRangeFilterProps {
   value: DateRangeFilterValue
-  facets: FacetsResponse
+  facets: FacetsResponse | null
   onChange: (value: DateRangeFilterValue) => void
   disabled?: boolean
 }
 ```
 
 - Read the reference bounds from `facets.min_date` and `facets.max_date`; either may be `null` for an empty dataset.
+- `facets: null` means the facets request has not produced data yet. Keep both inputs disabled and show the existing `Loading available range...` state. This is distinct from a `FacetsResponse` whose `min_date` and `max_date` are `null`, which represents an empty dataset and displays `no data`.
 - Empty inputs mean no corresponding query parameter is sent. With both empty, request the complete available dataset.
 - If only `start_date` is set, include movements from that date onward; if only `end_date` is set, include movements through that date. The supplied boundary is inclusive in either case.
 - Do not send dates outside the available bounds. Do not apply an invalid range where `start_date` is later than `end_date`.
@@ -71,7 +72,7 @@ import type { FacetsResponse, TopCategoriesResponse } from "./api-types"
 import type { DateRangeFilter } from "./param-types"
 
 interface BusinessComparisonViewProps {
-  facets: FacetsResponse
+  facets: FacetsResponse | null
   /** Shared range also used by the main dashboard and its alerts. */
   dateRange: DateRangeFilter
   /** Updates the shared range regardless of which dashboard view is active. */

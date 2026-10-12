@@ -72,7 +72,6 @@ function App() {
   const [alertsThreshold, setAlertsThreshold] = useState(0.3);
   const [loadedAlertsQuery, setLoadedAlertsQuery] = useState<string | null>(null);
   const [alertsError, setAlertsError] = useState<QueryError | null>(null);
-  const [comparisonRange, setComparisonRange] = useState<DateRangeFilterValue>({});
   const [comparisonData, setComparisonData] = useState(EMPTY_COMPARISON_DATA);
   const [loadedComparisonQuery, setLoadedComparisonQuery] = useState<string | null>(null);
   const [comparisonError, setComparisonError] = useState<QueryError | null>(null);
@@ -80,8 +79,6 @@ function App() {
 
   const startDate = dateRange.start_date;
   const endDate = dateRange.end_date;
-  const comparisonStartDate = comparisonRange.start_date;
-  const comparisonEndDate = comparisonRange.end_date;
   const metricsQuery = buildQueryString({ start_date: startDate, end_date: endDate });
   const alertsParams: AlertsParams = {
     threshold: alertsThreshold,
@@ -89,10 +86,7 @@ function App() {
     end_date: endDate,
   };
   const alertsQuery = buildQueryString(alertsParams);
-  const comparisonQuery = buildQueryString({
-    start_date: comparisonStartDate,
-    end_date: comparisonEndDate,
-  });
+  const comparisonQuery = metricsQuery;
   const metricsLoading = loadedMetricsQuery !== metricsQuery;
   const alertsLoading = loadedAlertsQuery !== alertsQuery;
   const comparisonLoading =
@@ -166,7 +160,7 @@ function App() {
     if (activeView !== "comparison") return;
 
     const controller = new AbortController();
-    const dateParams = { start_date: comparisonStartDate, end_date: comparisonEndDate };
+    const dateParams = { start_date: startDate, end_date: endDate };
     const b2bCategoryParams: TopCategoriesParams = {
       ...dateParams,
       operation_type: "income",
@@ -215,7 +209,7 @@ function App() {
       });
 
     return () => controller.abort();
-  }, [activeView, comparisonQuery, comparisonStartDate, comparisonEndDate]);
+  }, [activeView, comparisonQuery, startDate, endDate]);
 
   return (
     <main className="dark min-h-screen bg-background text-foreground">
@@ -294,8 +288,8 @@ function App() {
               ) : null}
               <BusinessComparisonView
                 facets={facets}
-                dateRange={comparisonRange}
-                onDateRangeChange={setComparisonRange}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
                 b2bCategories={comparisonData.b2bCategories}
                 b2cCategories={comparisonData.b2cCategories}
                 b2bIncomeTotal={comparisonData.b2bIncomeTotal}

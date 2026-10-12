@@ -92,3 +92,16 @@ Esta sesión implementó en el frontend las funcionalidades descritas en la sesi
 - Frontend: `npm test` — 10 pruebas pasaron; `npm run lint` pasó; `npm run build` pasó.
 - API en ejecución: la página del frontend, `/api/metrics/facets`, `/api/metrics/alerts` y `/api/metrics/categories/top` para B2B respondieron HTTP 200.
 - Vite mantiene el aviso de bundle superior a 500 kB; no impidió el build.
+
+### Ajuste posterior: rango de fechas compartido
+
+Tras una solicitud de producto posterior, `frontend/specs/components.md` y ambas vistas se actualizaron para compartir un único `DateRangeFilter` controlado por `App`. Cambiar las fechas en cualquiera de las pestañas actualiza la misma selección; las consultas de métricas, alertas, categorías y movimientos B2B/B2C usan esos mismos parámetros. La comparación ya no mantiene un rango independiente.
+
+- Frontend: `npm test` — 10 pruebas pasaron; `npm run lint` pasó; `npm run build` pasó.
+- Smoke check: el dashboard y `GET /api/metrics/facets` respondieron HTTP 200.
+
+## Alcance de Fase 4 y checklist
+
+Durante la fase de documentación del contrato no se modificaron componentes React, llamadas `fetch` ni el backend. La fase se limitó a documentar y verificar el contrato y los estados que ya existían.
+
+La implementación de componentes y llamadas `fetch` pertenece a la etapa anterior de implementación del dashboard. Por eso, la última casilla de la checklist —“Sin componentes React, llamadas fetch ni cambios de backend”— no se puede marcar literalmente si se refiere al estado completo del repositorio: los componentes y llamadas `fetch` siguen presentes por el trabajo anterior. Si la intención es describir solo el alcance de Fase 4, la formulación verificable es: “Esta fase no añadió ni modificó componentes React, llamadas `fetch` ni código de backend”.
