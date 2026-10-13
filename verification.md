@@ -105,3 +105,23 @@ Tras una solicitud de producto posterior, `frontend/specs/components.md` y ambas
 Durante la fase de documentación del contrato no se modificaron componentes React, llamadas `fetch` ni el backend. La fase se limitó a documentar y verificar el contrato y los estados que ya existían.
 
 La implementación de componentes y llamadas `fetch` pertenece a la etapa anterior de implementación del dashboard. Por eso, la última casilla de la checklist —“Sin componentes React, llamadas fetch ni cambios de backend”— no se puede marcar literalmente si se refiere al estado completo del repositorio: los componentes y llamadas `fetch` siguen presentes por el trabajo anterior. Si la intención es describir solo el alcance de Fase 4, la formulación verificable es: “Esta fase no añadió ni modificó componentes React, llamadas `fetch` ni código de backend”.
+
+## Sesión de trabajo — 2026-10-13: Skills
+
+Esta sesión documentó y aplicó skills al dashboard:
+
+- Skills aplicadas: `accessibility` y `vercel-react-best-practices` guiaron cambios del dashboard, registrados en los commits `3e806c3` y `5a20b7b`.
+- Verificación de accesibilidad (`3e806c3`):
+  - **Navegación por teclado:** estilos `:focus-visible` explícitos para enlaces, botones, inputs y controles interactivos en `frontend/src/index.css`, y pestañas navegables con `aria-pressed` en `frontend/src/App.tsx`.
+  - **Atributos `aria-*` y roles:** `aria-busy`, `role="status"` y `aria-label` en estados de carga/vacío de KPIs y gráficos (`kpi-row.tsx`, `income-outcome-chart.tsx`, `profit-percent-chart.tsx`), además de `<caption>` accesibles en tablas.
+  - **Texto alternativo (`alt` / iconos):** no hay elementos `<img>` en el dashboard; los iconos SVG decorativos tienen `aria-hidden="true"` y los gráficos incluyen tablas `sr-only` como alternativa textual para lectores de pantalla.
+  - **Contraste:** ajuste de `--muted-foreground` y `--input` en `frontend/src/index.css` para cumplir ratios básicos WCAG AA.
+- Skill del ecosistema elegida con `npx skills find`: tras ejecutar `npx skills find testing` y `npx skills find performance`, se seleccionó e instaló `webapp-testing` (`anthropics/skills@webapp-testing`). Se priorizó testing frente a performance porque faltaba cobertura de flujos UI y no había una medición que justificara trabajo de rendimiento. El smoke test con Playwright no pudo iniciar Chromium por la ausencia de `libatk-1.0.so.0`; se añadió cobertura con Vitest y React Testing Library en `frontend/src/App.test.tsx`.
+- Skill interna creada: `.agents/skills/data-flow-contracts/SKILL.md` (y replicada en `.skills/data-flow-contracts/SKILL.md`), con objetivo, entradas, procedimiento, formato de salida y criterios de aceptación.
+- Prueba de uso real: se auditó `GET /api/metrics` desde el modelo Pydantic hasta los cálculos del dashboard. No se encontró discrepancia estática en los campos principales; se identificó como riesgo que `fetchJson<T>` confía en el JSON sin validación runtime.
+
+### Verificaciones de la sesión
+
+- Diagnósticos de `data-flow-contracts/SKILL.md`: sin errores.
+- Frontend: `npm test -- --run src/App.test.tsx` — 4 pruebas pasaron (14 pruebas en total en la suite frontend junto con `npm run lint` y `npm run build`).
+- Backend: el intérprete local no pudo recoger `tests/test_routes.py::test_metrics_endpoint_respects_date_filters` porque no tiene FastAPI instalado (`ModuleNotFoundError`). La prueba se ejecutó después en la imagen backend existente con `docker compose run --rm backend pytest -q tests/test_routes.py::test_metrics_endpoint_respects_date_filters` — 1 pasó. El intento previo con `--build` falló en BuildKit durante `COPY . .`, antes de ejecutar pytest; por tanto, esta verificación usó la imagen ya disponible. Pytest emitió el aviso conocido de deprecación de Starlette/httpx.
