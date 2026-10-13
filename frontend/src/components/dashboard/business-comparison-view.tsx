@@ -61,6 +61,7 @@ function CategoryIncomeTable({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[380px] text-left text-sm">
+              <caption className="sr-only">{businessType} income categories and share of segment income</caption>
               <thead className="border-b border-border text-xs uppercase text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-3 py-3">Category</th>
@@ -120,7 +121,11 @@ function IncomeComparisonChart({
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={data} margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
+            <BarChart
+              accessibilityLayer
+              data={data}
+              margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" strokeOpacity={0.6} />
               <XAxis dataKey="businessType" tick={{ fill: "var(--color-muted-foreground)" }} />
               <YAxis
@@ -132,6 +137,27 @@ function IncomeComparisonChart({
             </BarChart>
           </ResponsiveContainer>
         )}
+        {!loading && (b2bIncomeTotal > 0 || b2cIncomeTotal > 0) ? (
+          <table className="sr-only">
+            <caption>Income by business line</caption>
+            <thead>
+              <tr>
+                <th scope="col">Business line</th>
+                <th scope="col">Income</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">B2B</th>
+                <td>{formatCurrency(b2bIncomeTotal)}</td>
+              </tr>
+              <tr>
+                <th scope="row">B2C</th>
+                <td>{formatCurrency(b2cIncomeTotal)}</td>
+              </tr>
+            </tbody>
+          </table>
+        ) : null}
       </CardContent>
     </Card>
   );

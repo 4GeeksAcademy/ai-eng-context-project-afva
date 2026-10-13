@@ -77,6 +77,7 @@ export function AnomalyAlertsTable({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[600px] text-left text-sm">
+              <caption className="sr-only">Spending anomalies by period</caption>
               <thead className="border-b border-border text-xs uppercase text-muted-foreground">
                 <tr>
                   <th scope="col" className="px-3 py-3">Period</th>

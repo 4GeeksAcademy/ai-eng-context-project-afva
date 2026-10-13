@@ -20,7 +20,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.99 0 0);
   --border: oklch(0.88 0.01 240);
-  --input: oklch(0.88 0.01 240);
+  --input: oklch(0.63 0.01 240);
   --ring: oklch(0.55 0.2 255);
   --chart-income: oklch(0.55 0.2 255);
   --chart-outcome: oklch(0.65 0.18 30);
@@ -57,7 +57,7 @@
   --destructive: oklch(0.45 0.18 27);
   --destructive-foreground: oklch(0.94 0.005 240);
   --border: oklch(0.26 0.015 240);
-  --input: oklch(0.26 0.015 240);
+  --input: oklch(0.5 0.015 240);
   --ring: oklch(0.6 0.2 255);
   --chart-income: oklch(0.62 0.2 255);
   --chart-outcome: oklch(0.68 0.18 30);
@@ -122,4 +122,9 @@ html,
 body,
 #root {
   min-height: 100%;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
