@@ -2,6 +2,7 @@ import type { BusinessType, CategoryEntry, FacetsResponse, TopCategoriesResponse
 import type { DateRangeFilter as DateRangeFilterValue } from "@/../specs/param-types";
 import { DateRangeFilter } from "@/components/dashboard/date-range-filter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency, formatPercent } from "@/lib/financial-utils";
 import {
   Bar,
@@ -50,45 +51,64 @@ function CategoryIncomeTable({
         <CardDescription>Top income categories and share of segment income</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <p className="py-8 text-center text-sm text-muted-foreground" role="status">
-            Loading categories…
-          </p>
-        ) : categories.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground" role="status">
-            No income categories available for this range.
-          </p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[380px] text-left text-sm">
-              <caption className="sr-only">{businessType} income categories and share of segment income</caption>
-              <thead className="border-b border-border text-xs uppercase text-muted-foreground">
-                <tr>
-                  <th scope="col" className="px-3 py-3">Category</th>
-                  <th scope="col" className="px-3 py-3 text-right">Income</th>
-                  <th scope="col" className="px-3 py-3 text-right">Share</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {categories.map((category: CategoryEntry) => (
-                  <tr key={category.category}>
-                    <th scope="row" className="px-3 py-3 font-medium capitalize text-foreground">
-                      {category.category}
-                    </th>
-                    <td className="px-3 py-3 text-right tabular-nums">
-                      {formatCurrency(category.total_amount)}
-                    </td>
-                    <td className="px-3 py-3 text-right tabular-nums">
-                      {groupIncomeTotal > 0
-                        ? formatPercent((category.total_amount / groupIncomeTotal) * 100)
-                        : "—"}
-                    </td>
-                  </tr>
+        <div className="min-h-[280px]">
+          {loading ? (
+            <div className="overflow-x-auto" aria-busy="true">
+              <p className="sr-only" role="status">Loading {businessType} income categories</p>
+              <div className="min-w-[380px]" aria-hidden="true">
+                <div className="grid grid-cols-3 gap-3 border-b border-border px-3 py-3">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-3 w-16 justify-self-end" />
+                  <Skeleton className="h-3 w-12 justify-self-end" />
+                </div>
+                {Array.from({ length: 5 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="grid min-h-11 grid-cols-3 items-center gap-3 border-b border-border px-3 py-3"
+                  >
+                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-20 justify-self-end" />
+                    <Skeleton className="h-4 w-14 justify-self-end" />
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              </div>
+            </div>
+          ) : categories.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground" role="status">
+              No income categories available for this range.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[380px] text-left text-sm">
+                <caption className="sr-only">{businessType} income categories and share of segment income</caption>
+                <thead className="border-b border-border text-xs uppercase text-muted-foreground">
+                  <tr>
+                    <th scope="col" className="px-3 py-3">Category</th>
+                    <th scope="col" className="px-3 py-3 text-right">Income</th>
+                    <th scope="col" className="px-3 py-3 text-right">Share</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {categories.map((category: CategoryEntry) => (
+                    <tr key={category.category}>
+                      <th scope="row" className="px-3 py-3 font-medium capitalize text-foreground">
+                        {category.category}
+                      </th>
+                      <td className="px-3 py-3 text-right tabular-nums">
+                        {formatCurrency(category.total_amount)}
+                      </td>
+                      <td className="px-3 py-3 text-right tabular-nums">
+                        {groupIncomeTotal > 0
+                          ? formatPercent((category.total_amount / groupIncomeTotal) * 100)
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
